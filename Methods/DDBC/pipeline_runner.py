@@ -34,25 +34,31 @@ with open(path, "w") as f:
 
 
 
+# notebooks = [
+#     # hypergraph construction
+#     "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
+#     # create communities
+#     "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
+#     # generate important terms
+#     "Methods/DDBC/Clustering_Result_Analysis.ipynb",
+#     # analyze important terms, generate table
+#     "Methods/DDBC/important_terms_analysis.ipynb",
+#     # make community similarity graph
+#     "Methods/DDBC/community_similarity_graph.ipynb",
+#     # hypergraph stat
+#     "Tools/hypergraph_overview.ipynb",
+# ]
+
 notebooks = [
-    # hypergraph construction
-    "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
     # create communities
     "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
     # generate important terms
     "Methods/DDBC/Clustering_Result_Analysis.ipynb",
     # analyze important terms, generate table
     "Methods/DDBC/important_terms_analysis.ipynb",
-    # make community similarity graph
-    "Methods/DDBC/community_similarity_graph.ipynb",
-    # hypergraph stat
-    "Tools/hypergraph_overview.ipynb",
 ]
 
 answers = iter([
-    DISEASE,
-    DISEASE,
-    DISEASE,
     DISEASE,
     DISEASE,
     DISEASE,

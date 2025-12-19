@@ -7,10 +7,8 @@ python = sys.executable
 script = Path("Methods/DDBC/pipeline_runner.py")
 
 disease_id_dict = {
-    "PARKINSON": 49049000,
-    "ALZHEIMER": 26929004,
-    "DIABETES": 44054006,
-    "BREASTCANCER": 254837009,
+  "BIPOLAR": 13746004,
+  "SCHIZOPHRENIA": 58214004,
 }
 
 log_dir = Path("logs")
