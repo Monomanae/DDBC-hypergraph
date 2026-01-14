@@ -8,7 +8,6 @@ script = Path("Methods/DDBC/pipeline_runner.py")
 log_title = input("Log title: ")
 
 disease_id = [
-  "BIPOLAR",
   "SCHIZOPHRENIA",
   "PARKINSON",
   "SCHIZOPHRENIA",
