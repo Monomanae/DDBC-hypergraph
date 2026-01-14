@@ -16,21 +16,21 @@ start = time.time()
 # EDIT THESE
 # --------------------
 DISEASE = input("Disease: ")
-SNOMED_id = input("SNOMED id: ")
+# SNOMED_id = input("SNOMED id: ")
 
-# save customized id
-path = "Data/disease_to_snomed_id.json"
+# # save customized id
+# path = "Data/disease_to_snomed_id.json"
 
-try:
-    with open(path, "r") as f:
-        data = json.load(f)
-except FileNotFoundError:
-    raise FileNotFoundError(f"{path} does not exist")
+# try:
+#     with open(path, "r") as f:
+#         data = json.load(f)
+# except FileNotFoundError:
+#     raise FileNotFoundError(f"{path} does not exist")
 
-data[DISEASE] = int(SNOMED_id)
+# data[DISEASE] = int(SNOMED_id)
 
-with open(path, "w") as f:
-    json.dump(data, f, indent=2)
+# with open(path, "w") as f:
+#     json.dump(data, f, indent=2)
 
 
 
@@ -50,18 +50,17 @@ with open(path, "w") as f:
 # ]
 
 notebooks = [
-    # create communities
+    # # create communities
     "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
-    # generate important terms
-    "Methods/DDBC/Clustering_Result_Analysis.ipynb",
+    # # generate important terms
+    # "Methods/DDBC/Clustering_Result_Analysis.ipynb",
     # analyze important terms, generate table
-    "Methods/DDBC/important_terms_analysis.ipynb",
+    # "Methods/DDBC/important_terms_analysis.ipynb"
 ]
 
 answers = iter([
     DISEASE,
-    DISEASE,
-    DISEASE,
+    # DISEASE,
 ])
 
 def fake_input(prompt=""):
