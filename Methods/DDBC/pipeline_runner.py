@@ -53,14 +53,15 @@ notebooks = [
     # # create communities
     "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
     # # generate important terms
-    # "Methods/DDBC/Clustering_Result_Analysis.ipynb",
+    "Methods/DDBC/Clustering_Result_Analysis.ipynb",
     # analyze important terms, generate table
-    # "Methods/DDBC/important_terms_analysis.ipynb"
+    "Methods/DDBC/important_terms_analysis.ipynb"
 ]
 
 answers = iter([
     DISEASE,
-    # DISEASE,
+    DISEASE,
+    DISEASE,
 ])
 
 def fake_input(prompt=""):

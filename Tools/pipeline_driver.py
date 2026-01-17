@@ -8,13 +8,12 @@ script = Path("Methods/DDBC/pipeline_runner.py")
 log_title = input("Log title: ")
 
 disease_id = [
-  "SCHIZOPHRENIA",
-  "PARKINSON",
-  "SCHIZOPHRENIA",
-  "DIABETES",
-  "LEUKEMIA",
-  "BREASTCANCER",
-  "NONE"
+# "BIPOLAR",
+# "SCHIZOPHRENIA",
+"LEUKEMIA",
+"BREASTCANCER",
+"PARKINSON",
+"DIABETES",
 ]
 
 log_dir = Path(f"logs/{log_title}")
