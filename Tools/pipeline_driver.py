@@ -9,11 +9,11 @@ log_title = input("Log title: ")
 
 disease_id = [
 # "BIPOLAR",
-# "SCHIZOPHRENIA",
-"LEUKEMIA",
-"BREASTCANCER",
-"PARKINSON",
-"DIABETES",
+"SCHIZOPHRENIA",
+# "LEUKEMIA",
+# "BREASTCANCER",
+# "PARKINSON",
+# "DIABETES",
 ]
 
 log_dir = Path(f"logs/{log_title}")

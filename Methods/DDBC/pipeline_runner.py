@@ -16,52 +16,28 @@ start = time.time()
 # EDIT THESE
 # --------------------
 DISEASE = input("Disease: ")
-# SNOMED_id = input("SNOMED id: ")
-
-# # save customized id
-# path = "Data/disease_to_snomed_id.json"
-
-# try:
-#     with open(path, "r") as f:
-#         data = json.load(f)
-# except FileNotFoundError:
-#     raise FileNotFoundError(f"{path} does not exist")
-
-# data[DISEASE] = int(SNOMED_id)
-
-# with open(path, "w") as f:
-#     json.dump(data, f, indent=2)
-
-
-
-# notebooks = [
-#     # hypergraph construction
-#     "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
-#     # create communities
-#     "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
-#     # generate important terms
-#     "Methods/DDBC/Clustering_Result_Analysis.ipynb",
-#     # analyze important terms, generate table
-#     "Methods/DDBC/important_terms_analysis.ipynb",
-#     # make community similarity graph
-#     "Methods/DDBC/community_similarity_graph.ipynb",
-#     # hypergraph stat
-#     "Tools/hypergraph_overview.ipynb",
-# ]
 
 notebooks = [
+    "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
     # # create communities
     "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
-    # # generate important terms
+    # generate important terms
     "Methods/DDBC/Clustering_Result_Analysis.ipynb",
     # analyze important terms, generate table
-    "Methods/DDBC/important_terms_analysis.ipynb"
+    "Methods/DDBC/important_terms_analysis.ipynb",
+    # make community similarity graph
+    # "Methods/DDBC/disease_jaccard_similarity.ipynb",
+    # # diffusion distance comparison
+    # "Methods/DDBC/diffusion_distance_comparison.ipynb",
 ]
 
 answers = iter([
     DISEASE,
     DISEASE,
     DISEASE,
+    DISEASE,
+    # DISEASE,
+    # DISEASE,
 ])
 
 def fake_input(prompt=""):
