@@ -15,12 +15,12 @@ start = time.time()
 # --------------------
 # EDIT THESE
 # --------------------
-DISEASE = input("Disease: ")
+DISEASE = "NONE"
 
 notebooks = [
-    "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
+    "Gen_Hypergraph/MSigDBHypergraph.ipynb",
     # # create communities
-    "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
+    "Methods/DDBC/Diffusion_Distance_Based_Clustering_MSigDB.ipynb",
     # generate important terms
     "Methods/DDBC/Clustering_Result_Analysis.ipynb",
     # analyze important terms, generate table

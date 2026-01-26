@@ -1,0 +1,26 @@
+{
+    "DGIDB_MSIGDB_singlelayer": {
+        "mean": 113.330322265625,
+        "var": 0.6153525710105896
+    },
+    "DGIDB_MSIGDB_multilayer": {
+        "mean": 0.030755254175930405,
+        "var": 0.00017641353403130222
+    },
+    "DGIDB_DGIDB_singlelayer": {
+        "mean": 0.5090794563293457,
+        "var": 1.4326841831207275
+    },
+    "DGIDB_DGIDB_multilayer": {
+        "mean": 1.2086903447727408,
+        "var": 0.45908024900580896
+    },
+    "MSIGDB_MSIGDB_singlelayer": {
+        "mean": 225.98553466796875,
+        "var": 109188528.0
+    },
+    "MSIGDB_MSIGDB_multilayer": {
+        "mean": 2.102515333290658,
+        "var": 38001.452785482215
+    }
+}
