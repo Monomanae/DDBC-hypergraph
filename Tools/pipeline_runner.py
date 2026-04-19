@@ -19,17 +19,11 @@ DISEASE = input("Disease: ")
 
 notebooks = [
     # "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
-    # # create communities
     "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
-    # generate important terms
     # "Methods/DDBC/Clustering_Result_Analysis.ipynb",
-    # # analyze important terms, generate table
     # "Methods/DDBC/important_terms_analysis.ipynb",
-    # # make community similarity graph
     # "Methods/DDBC/disease_jaccard_similarity.ipynb",
-    # # diffusion distance comparison
     # "Methods/DDBC/diffusion_distance_comparison.ipynb",
-    # # create pie plot
     # "Methods/DDBC/community_pie_chart_multiple.ipynb",
 ]
 

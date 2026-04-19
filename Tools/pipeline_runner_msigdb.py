@@ -18,7 +18,7 @@ start = time.time()
 DISEASE = "NONE"
 
 notebooks = [
-    "Gen_Hypergraph/MSigDBHypergraph.ipynb",
+    # "Gen_Hypergraph/MSigDBHypergraph.ipynb",
     # # create communities
     "Methods/DDBC/Diffusion_Distance_Based_Clustering_MSigDB.ipynb",
     # generate important terms
@@ -26,11 +26,11 @@ notebooks = [
     # analyze important terms, generate table
     "Methods/DDBC/important_terms_analysis.ipynb",
     # make community similarity graph
-    "Methods/DDBC/disease_jaccard_similarity.ipynb",
+    # "Methods/DDBC/disease_jaccard_similarity.ipynb",
     # diffusion distance comparison
-    "Methods/DDBC/diffusion_distance_comparison.ipynb",
+    # "Methods/DDBC/diffusion_distance_comparison.ipynb",
     # create pie plot
-    "Methods/DDBC/community_pie_chart_multiple.ipynb",
+    # "Methods/DDBC/community_pie_chart_multiple.ipynb",
 ]
 
 answers = iter([DISEASE] * len(notebooks))

@@ -1,0 +1,19 @@
+{
+    "knn_num_neighbors (k)": 400,
+    "leiden_resolution (gamma)": 1.3,
+    "leiden_method": "rb",
+    "average_time_steps (T)": [
+        2,
+        4,
+        8,
+        16
+    ],
+    "leiden_random_seed": 42,
+    "community_size_cap": 30,
+    "community_zscore_cap": 0,
+    "ARI_num_bootstraps": 1000,
+    "ARI_num_bootstraps_executed": 300,
+    "check_every": 50,
+    "tolerance_in_median_ARI_change": 0.01,
+    "patience": 2
+}

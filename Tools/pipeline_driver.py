@@ -4,13 +4,13 @@ from pathlib import Path
 from datetime import datetime
 
 python = sys.executable
-script = Path("Methods/DDBC/pipeline_runner.py")
+script = Path("Tools/pipeline_runner.py")
 log_title = input("Log title: ")
 
 disease_id = [
 # "BIPOLAR",
 # "SCHIZOPHRENIA",
-"LEUKEMIA",
+# "LEUKEMIA",
 "BREASTCANCER",
 "PARKINSON",
 "DIABETES",
