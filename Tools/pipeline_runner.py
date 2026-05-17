@@ -19,12 +19,14 @@ DISEASE = input("Disease: ")
 
 notebooks = [
     # "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
-    "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
-    # "Methods/DDBC/Clustering_Result_Analysis.ipynb",
-    # "Methods/DDBC/important_terms_analysis.ipynb",
+    # "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
+    "Methods/DDBC/Clustering_Result_Analysis.ipynb",
+    "Methods/DDBC/important_terms_analysis.ipynb",
     # "Methods/DDBC/disease_jaccard_similarity.ipynb",
-    # "Methods/DDBC/diffusion_distance_comparison.ipynb",
     # "Methods/DDBC/community_pie_chart_multiple.ipynb",
+    # "Tools/hypergraph_overview.ipynb"   
+    # "Methods/DDBC/diffusion_distance_comparison.ipynb",
+    # "Methods/DDBC/eigen_embedding.ipynb",
 ]
 
 answers = iter([DISEASE] * len(notebooks))

@@ -8,12 +8,13 @@ script = Path("Tools/pipeline_runner.py")
 log_title = input("Log title: ")
 
 disease_id = [
-# "BIPOLAR",
-# "SCHIZOPHRENIA",
-# "LEUKEMIA",
+"BIPOLAR",
+"SCHIZOPHRENIA",
+"LEUKEMIA",
 "BREASTCANCER",
-"PARKINSON",
-"DIABETES",
+# "PARKINSON",
+# "DIABETES",
+"NONE"
 ]
 
 log_dir = Path(f"logs/{log_title}")
