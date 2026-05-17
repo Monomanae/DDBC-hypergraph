@@ -12,8 +12,6 @@ disease_id = [
 "SCHIZOPHRENIA",
 "LEUKEMIA",
 "BREASTCANCER",
-# "PARKINSON",
-# "DIABETES",
 "NONE"
 ]
 

@@ -189,5 +189,8 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Graph folders
+# Graph folder
 Graphs/
+
+# Log folder
+logs/
