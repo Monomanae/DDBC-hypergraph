@@ -1,19 +1,15 @@
 dgivenv/
 torchdgivenv/
 Data/*/
+Graphs/
+logs/
 *.tsv
-*.csv
 *.png
-Tools/GNN_OUTPUTS/*
 Methods/output/*
-Methods/output_notebooks
-Methods/OT/*
 Data/50_gene_distance_graph.edgelist
 Data/distance_matrix.npy
-Methods/id_to_gene_claim.json
 Gen_Hypergraph/output/*
-Tools/drichlet
-Tools/robustnodes
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -189,8 +185,3 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Graph folder
-Graphs/
-
-# Log folder
-logs/
