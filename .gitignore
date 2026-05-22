@@ -5,6 +5,7 @@ Graphs/
 logs/
 *.tsv
 *.png
+*.code-workspace
 Methods/output/*
 Data/50_gene_distance_graph.edgelist
 Data/distance_matrix.npy
