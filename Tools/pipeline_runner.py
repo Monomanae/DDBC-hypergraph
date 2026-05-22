@@ -3,7 +3,6 @@ import builtins
 import runpy
 import tempfile
 from pathlib import Path
-import json
 import nbformat
 from nbconvert import PythonExporter
 import time
@@ -18,13 +17,13 @@ start = time.time()
 DISEASE = input("Disease: ")
 
 notebooks = [
-    # "Tools/hypergraph_overview.ipynb",
-    # "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
-    # "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
+    "Methods/DDBC/hypergraph_overview.ipynb",
+    "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
+    "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
     "Methods/DDBC/Clustering_Result_Analysis.ipynb",
-    # "Methods/DDBC/important_terms_analysis.ipynb",
-    # "Methods/DDBC/disease_jaccard_similarity.ipynb",
-    # "Methods/DDBC/community_pie_chart_multiple.ipynb"
+    "Methods/DDBC/important_terms_analysis.ipynb",
+    "Methods/DDBC/disease_jaccard_similarity.ipynb",
+    "Methods/DDBC/community_pie_chart_multiple.ipynb"
 ]
 
 answers = iter([DISEASE] * len(notebooks))

@@ -1,13 +1,11 @@
 import papermill as pm
-import os
-import sys
 from pathlib import Path
 from datetime import datetime
 
 # --------------------
 # CONFIGURATION
 # --------------------
-DISEASE = "LEUKEMIA"
+DISEASE = "BIPOLAR"  # You can change this to test other diseases
 beta_list = [0.0, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.35, 0.5, 0.7, 0.8, 0.9]
 
 input_nb = Path("Methods/DDBC/beta_sensitivity_test.ipynb")
