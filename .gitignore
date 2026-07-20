@@ -10,6 +10,7 @@ Methods/output/*
 Data/50_gene_distance_graph.edgelist
 Data/distance_matrix.npy
 Gen_Hypergraph/output/*
+Methods/output/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
