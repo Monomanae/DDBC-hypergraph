@@ -5,6 +5,7 @@ import json
 import os
 import pickle
 import sys
+import random
 from dataclasses import dataclass, field
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -305,7 +306,7 @@ def build_interlayer_coupling_matrices(
     num_genes_msigdb = len(msigdb)
     num_genes_dgidb = len(dgidb)
 
-    dgidb_to_msigdb_indices = []
+    dgidb_to_msigdb_indices_dict = {}
     C12 = np.zeros((num_genes_dgidb, num_genes_msigdb))
     C21 = np.zeros((num_genes_msigdb, num_genes_dgidb))
     B12_array = np.zeros(num_genes_dgidb)
@@ -315,13 +316,13 @@ def build_interlayer_coupling_matrices(
     for gene_dgidb, idx_dgidb in dgidb.items():
         if gene_dgidb in msigdb:
             idx_msigdb = msigdb[gene_dgidb]
-            dgidb_to_msigdb_indices.append((idx_dgidb, idx_msigdb))
+            dgidb_to_msigdb_indices_dict[idx_dgidb] = idx_msigdb
             matched += 1
         else:
-            dgidb_to_msigdb_indices.append((idx_dgidb, None))
+            dgidb_to_msigdb_indices_dict[idx_dgidb] = None
             print(f"Gene {gene_dgidb} not found in MSIGDB mapping.")
 
-    for idx_dgidb, idx_msigdb in dgidb_to_msigdb_indices:
+    for idx_dgidb, idx_msigdb in dgidb_to_msigdb_indices_dict.items():
         if idx_msigdb is not None:
             C12[idx_dgidb, :] = (
                 MSIGDB_adjacency_matrix.getrow(idx_msigdb).toarray().ravel()
@@ -340,7 +341,6 @@ def build_interlayer_coupling_matrices(
     A21 = sp.diags(A21_array)
 
     print(matched / len(dgidb), "of DGIDB genes have a match in MSIGDB")
-    dgidb_to_msigdb_indices_dict = dict(dgidb_to_msigdb_indices)
 
     with open(
         config.output_directory + "dgidb_to_msigdb_indices_dict.json", "w"
@@ -367,17 +367,189 @@ def build_interlayer_coupling_matrices(
         "B12": B12,
         "B21": B21,
     }
+    
+def build_interlayer_coupling_matrices_randomized(
+    DGIDB_adjacency_matrix,
+    MSIGDB_adjacency_matrix,
+    config,
+    none_prob = 0.015,
+):
+    """Build C12, C21, A12, A21, B12, and B21 exactly as in the notebook."""
+
+    with open(config.dgidb_directory + "gene_to_index.json", "r") as file:
+        dgidb = json.load(file)
+    with open(config.msigdb_directory + "gene_to_index.json", "r") as file:
+        msigdb = json.load(file)
+        
+    num_genes_msigdb = len(msigdb)
+    num_genes_dgidb = len(dgidb)
+        
+    ### RANDOMIZE gene_to_index dictionaries
+    random_msigdb_genes_selected = random.sample(list(msigdb.keys()), num_genes_dgidb)
+    randomized_dgidb = {
+        (f"UNIQUE_GENE_{idx}" if random.random() < none_prob else gene): idx
+        for idx, gene in enumerate(random_msigdb_genes_selected)
+    }
+    
+    dgidb = randomized_dgidb   
+    ######################################
+
+    DGIDB_index_to_gene = {index: gene for gene, index in dgidb.items()}
+    MSIGDB_index_to_gene = {index: gene for gene, index in msigdb.items()}
+
+    dgidb_to_msigdb_indices_dict = {}
+    C12 = np.zeros((num_genes_dgidb, num_genes_msigdb))
+    C21 = np.zeros((num_genes_msigdb, num_genes_dgidb))
+    B12_array = np.zeros(num_genes_dgidb)
+    B21_array = np.zeros(num_genes_msigdb)
+
+    matched = 0
+    for gene_dgidb, idx_dgidb in dgidb.items():
+        if gene_dgidb in msigdb:
+            idx_msigdb = msigdb[gene_dgidb]
+            dgidb_to_msigdb_indices_dict[idx_dgidb] = idx_msigdb
+            matched += 1
+        else:
+            dgidb_to_msigdb_indices_dict[idx_dgidb] = None
+            print(f"Gene {gene_dgidb} not found in MSIGDB mapping.")
+
+    for idx_dgidb, idx_msigdb in dgidb_to_msigdb_indices_dict.items():
+        if idx_msigdb is not None:
+            C12[idx_dgidb, :] = (
+                MSIGDB_adjacency_matrix.getrow(idx_msigdb).toarray().ravel()
+            )
+            C21[idx_msigdb, :] = (
+                DGIDB_adjacency_matrix.getrow(idx_dgidb).toarray().ravel()
+            )
+            B12_array[idx_dgidb] = config.interlayer_transition_prob
+            B21_array[idx_msigdb] = config.interlayer_transition_prob
+
+    A12_array = 1 - B12_array
+    A21_array = 1 - B21_array
+    B12 = sp.diags(B12_array)
+    B21 = sp.diags(B21_array)
+    A12 = sp.diags(A12_array)
+    A21 = sp.diags(A21_array)
+
+    print(matched / len(dgidb), "of DGIDB genes have a match in MSIGDB")
+
+    with open(
+        config.output_directory + "dgidb_to_msigdb_indices_dict.json", "w"
+    ) as file:
+        json.dump(dgidb_to_msigdb_indices_dict, file, indent=4)
+    print(
+        "Mappings saved to "
+        + config.output_directory
+        + "dgidb_to_msigdb_indices_dict.json"
+    )
+
+    return {
+        "dgidb": dgidb,
+        "msigdb": msigdb,
+        "DGIDB_index_to_gene": DGIDB_index_to_gene,
+        "MSIGDB_index_to_gene": MSIGDB_index_to_gene,
+        "num_genes_dgidb": num_genes_dgidb,
+        "num_genes_msigdb": num_genes_msigdb,
+        "dgidb_to_msigdb_indices_dict": dgidb_to_msigdb_indices_dict,
+        "C12": C12,
+        "C21": C21,
+        "A12": A12,
+        "A21": A21,
+        "B12": B12,
+        "B21": B21,
+    }
+    
+# def build_interlayer_coupling_matrices_randomized(
+#     DGIDB_adjacency_matrix,
+#     MSIGDB_adjacency_matrix,
+#     config,
+#     none_prob = 0.015,
+# ):
+#     """Build C12, C21, A12, A21, B12, and B21 exactly as in the notebook."""
+
+#     with open(config.dgidb_directory + "gene_to_index.json", "r") as file:
+#         dgidb = json.load(file)
+#     with open(config.msigdb_directory + "gene_to_index.json", "r") as file:
+#         msigdb = json.load(file)
+
+#     DGIDB_index_to_gene = {index: gene for gene, index in dgidb.items()}
+#     MSIGDB_index_to_gene = {index: gene for gene, index in msigdb.items()}
+#     num_genes_msigdb = len(msigdb)
+#     num_genes_dgidb = len(dgidb)
+
+#     dgidb_to_msigdb_indices_dict = {}
+#     C12 = np.zeros((num_genes_dgidb, num_genes_msigdb))
+#     C21 = np.zeros((num_genes_msigdb, num_genes_dgidb))
+#     B12_array = np.zeros(num_genes_dgidb)
+#     B21_array = np.zeros(num_genes_msigdb)
+
+#     matched = 0
+#     for gene_dgidb, idx_dgidb in dgidb.items():
+#         ### RANDOMIZED
+#         idx_msigdb = None if np.random.random() < none_prob else np.random.randint(0,num_genes_msigdb)
+#         #################
+#         if idx_msigdb is not None:
+#             dgidb_to_msigdb_indices_dict[idx_dgidb] = idx_msigdb
+#             matched += 1
+#         else:
+#             dgidb_to_msigdb_indices_dict[idx_dgidb] = None
+#             print(f"Gene {gene_dgidb} not wired to genes in MSIGDB.")
+
+#     for idx_dgidb, idx_msigdb in dgidb_to_msigdb_indices_dict.items():
+#         if idx_msigdb is not None:
+#             C12[idx_dgidb, :] = (
+#                 MSIGDB_adjacency_matrix.getrow(idx_msigdb).toarray().ravel()
+#             )
+#             C21[idx_msigdb, :] = (
+#                 DGIDB_adjacency_matrix.getrow(idx_dgidb).toarray().ravel()
+#             )
+#             B12_array[idx_dgidb] = config.interlayer_transition_prob
+#             B21_array[idx_msigdb] = config.interlayer_transition_prob
+
+#     A12_array = 1 - B12_array
+#     A21_array = 1 - B21_array
+#     B12 = sp.diags(B12_array)
+#     B21 = sp.diags(B21_array)
+#     A12 = sp.diags(A12_array)
+#     A21 = sp.diags(A21_array)
+
+#     print(matched / len(dgidb), "of DGIDB genes have a match in MSIGDB")
+
+#     with open(
+#         config.output_directory + "dgidb_to_msigdb_indices_dict.json", "w"
+#     ) as file:
+#         json.dump(dgidb_to_msigdb_indices_dict, file, indent=4)
+#     print(
+#         "Mappings saved to "
+#         + config.output_directory
+#         + "dgidb_to_msigdb_indices_dict.json"
+#     )
+
+#     return {
+#         "dgidb": dgidb,
+#         "msigdb": msigdb,
+#         "DGIDB_index_to_gene": DGIDB_index_to_gene,
+#         "MSIGDB_index_to_gene": MSIGDB_index_to_gene,
+#         "num_genes_dgidb": num_genes_dgidb,
+#         "num_genes_msigdb": num_genes_msigdb,
+#         "dgidb_to_msigdb_indices_dict": dgidb_to_msigdb_indices_dict,
+#         "C12": C12,
+#         "C21": C21,
+#         "A12": A12,
+#         "A21": A21,
+#         "B12": B12,
+#         "B21": B21,
+#     }
 
 
 def build_distinct_gene_mapping(coupling, config):
-    n1 = coupling["num_genes_dgidb"]
     msigdb = coupling["msigdb"]
-    mapping = coupling["dgidb_to_msigdb_indices_dict"]
+    dgidb_to_msigdb_indices_dict = coupling["dgidb_to_msigdb_indices_dict"]
     DGIDB_index_to_gene = coupling["DGIDB_index_to_gene"]
 
     gene_to_index_dgidb_new = {}
     num_additional_rows = 0
-    for didx, midx in mapping.items():
+    for didx, midx in dgidb_to_msigdb_indices_dict.items():
         if midx is None:
             gene_to_index_dgidb_new[DGIDB_index_to_gene[didx]] = num_additional_rows
             num_additional_rows += 1
