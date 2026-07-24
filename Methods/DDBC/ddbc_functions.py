@@ -373,8 +373,11 @@ def build_interlayer_coupling_matrices_randomized(
     MSIGDB_adjacency_matrix,
     config,
     none_prob = 0.015,
+    run_id = None,
 ):
     """Build C12, C21, A12, A21, B12, and B21 exactly as in the notebook."""
+    
+    filename = "dgidb_to_msigdb_indices_dict" if run_id is None else f"dgidb_to_msigdb_indices_dict_{run_id}"
 
     with open(config.dgidb_directory + "gene_to_index.json", "r") as file:
         dgidb = json.load(file)
@@ -434,13 +437,13 @@ def build_interlayer_coupling_matrices_randomized(
     print(matched / len(dgidb), "of DGIDB genes have a match in MSIGDB")
 
     with open(
-        config.output_directory + "dgidb_to_msigdb_indices_dict.json", "w"
+        config.output_directory + f"{filename}.json", "w"
     ) as file:
         json.dump(dgidb_to_msigdb_indices_dict, file, indent=4)
     print(
         "Mappings saved to "
         + config.output_directory
-        + "dgidb_to_msigdb_indices_dict.json"
+        + f"{filename}.json"
     )
 
     return {
@@ -542,7 +545,8 @@ def build_interlayer_coupling_matrices_randomized(
 #     }
 
 
-def build_distinct_gene_mapping(coupling, config):
+def build_distinct_gene_mapping(coupling, config, run_id = None):
+    filename = "gene_to_index_distinct" if run_id is None else f"gene_to_index_distinct_{run_id}"
     msigdb = coupling["msigdb"]
     dgidb_to_msigdb_indices_dict = coupling["dgidb_to_msigdb_indices_dict"]
     DGIDB_index_to_gene = coupling["DGIDB_index_to_gene"]
@@ -559,14 +563,12 @@ def build_distinct_gene_mapping(coupling, config):
     }
     gene_to_index_distinct = MSIGDB_gene_to_index_new | gene_to_index_dgidb_new
 
-    with open(
-        config.output_directory + "gene_to_index_distinct.json", "w"
-    ) as pathway_file:
+    with open(config.output_directory + f"{filename}.json", "w") as pathway_file:
         json.dump(gene_to_index_distinct, pathway_file, indent=4)
     print(
         "Mappings saved to "
         + config.output_directory
-        + "gene_to_index_distinct.json"
+        + f"{filename}.json"
     )
     return gene_to_index_distinct
 
@@ -657,7 +659,8 @@ def compute_stationary_layer_weights(pi, coupling):
     return wD_list, wM_list
 
 
-def plot_stationary_layer_weights(wD_list, wM_list, config):
+def plot_stationary_layer_weights(wD_list, wM_list, config, run_id = None):
+    filename = 'pairwise_weights_comparison_for_duplicated_genes' if run_id is None else f"pairwise_weights_comparison_for_duplicated_genes_{run_id}"
     xaxis = np.arange(len(wD_list))
     plt.figure(figsize=(10, 6))
     plt.plot(xaxis, wD_list, color="blue", label="wD (DGIDB weight)")
@@ -666,7 +669,7 @@ def plot_stationary_layer_weights(wD_list, wM_list, config):
     plt.legend()
     plt.title("Layer Weights for Genes in Both Layers")
     plt.savefig(
-        f"{config.graph_directory}/pairwise_weights_comparison_for_duplicated_genes.png"
+        f"{config.graph_directory}/{filename}.png"
     )
 
 
@@ -724,8 +727,8 @@ def apply_exact_power_left(x, t, A_r, P, A_c):
     return y
 
 
-def compute_average_transition_matrix(P, A_r=None, A_c=None, average_t=None):
-    if average_t is None:
+def compute_and_save_average_transition_matrix(P, config, A_r=None, A_c=None):
+    if config.average_t is None:
         raise ValueError("average_t must be provided.")
 
     # MODIFIED: No aggregation matrices are used for the MSIGDB-only case.
@@ -755,7 +758,7 @@ def compute_average_transition_matrix(P, A_r=None, A_c=None, average_t=None):
         avg_row = np.zeros(num_columns)
         current_t = 0
 
-        for t in average_t:
+        for t in config.average_t:
             while current_t < t:
                 idx_row = idx_row @ P
                 current_t += 1
@@ -765,16 +768,19 @@ def compute_average_transition_matrix(P, A_r=None, A_c=None, average_t=None):
             else:
                 avg_row += idx_row @ A_c
 
-        avg_row /= len(average_t)
+        avg_row /= len(config.average_t)
         P_t_avg[idx] = avg_row
+    
+    np.save(config.output_directory, P_t_avg)
 
     return P_t_avg
 
 
-def compute_and_save_diffusion_distance(P_t_avg, config):
+def compute_and_save_diffusion_distance(P_t_avg, config, run_id):
+    filename = f'ddm_{config.average_t}' if run_id is None else f'ddm_{config.average_t}_{run_id}'
     D_avg = squareform(pdist(P_t_avg, metric="euclidean") ** 2)
     np.save(
-        f"{config.output_directory}/ddm_{config.average_t}.npy",
+        f"{config.output_directory}/{filename}.npy",
         D_avg,
     )
     return D_avg
