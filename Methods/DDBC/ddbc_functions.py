@@ -721,7 +721,53 @@ def apply_exact_power_left(x, t, A_r, P, A_c):
     return y
 
 
-def compute_and_save_average_transition_matrix(P, config, A_r=None, A_c=None):
+def dgidb_aggregate_row_indices(coupling, gene_to_index_distinct):
+    """
+    Row indices of every DGIDB gene in the aggregated matrix.
+    """
+
+    DGIDB_index_to_gene = coupling["DGIDB_index_to_gene"]
+    n1 = coupling["num_genes_dgidb"]
+    return [gene_to_index_distinct[DGIDB_index_to_gene[idx]] for idx in range(n1)]
+
+
+def load_dgidb_aggregate_row_indices(config):
+    """Same list as dgidb_aggregate_row_indices, rebuilt from the output folder.
+
+    Reads only dgidb_to_msigdb_indices_dict.json, which the coupling builders write
+    for the run that produced it, so the result always describes that run's
+    aggregation. Gene names are not needed: build_distinct_gene_mapping gives the
+    MSIGDB-less genes the leading rows in iteration order and shifts every shared
+    gene by that count, which is enough to replay the assignment.
+    """
+
+    with open(
+        f"{config.output_directory}/dgidb_to_msigdb_indices_dict.json", "r"
+    ) as file:
+        dgidb_to_msigdb_indices_dict = json.load(file)
+
+    num_additional_rows = sum(
+        1 for midx in dgidb_to_msigdb_indices_dict.values() if midx is None
+    )
+
+    idx_list = []
+    rank = 0
+    for midx in dgidb_to_msigdb_indices_dict.values():
+        if midx is None:
+            idx_list.append(rank)
+            rank += 1
+        else:
+            idx_list.append(midx + num_additional_rows)
+    return idx_list
+
+
+def compute_and_save_average_transition_matrix(
+    P,
+    config,
+    A_r=None,
+    A_c=None,
+    dgidb_rows_only=False
+):
     if config.average_t is None:
         raise ValueError("average_t must be provided.")
 
@@ -731,6 +777,15 @@ def compute_and_save_average_transition_matrix(P, config, A_r=None, A_c=None):
     if (A_r is None) != (A_c is None):
         raise ValueError("A_r and A_c must either both be provided or both be None.")
 
+    # MODIFIED: dgidb_rows_only restricts the computation to the DGIDB rows. Each row
+    # is an independent e_idx A_r P^t A_c product, so skipping rows leaves the
+    # remaining ones bit-for-bit identical -- it only avoids the work.
+    if dgidb_rows_only and msigdb_only:
+        raise ValueError(
+            "dgidb_rows_only requires the DGIDB+MSIGDB path; the MSIGDB-only "
+            "case has no DGIDB rows."
+        )
+
     if msigdb_only:
         num_rows = P.shape[0]
         num_columns = P.shape[1]
@@ -738,9 +793,24 @@ def compute_and_save_average_transition_matrix(P, config, A_r=None, A_c=None):
         num_rows = A_r.shape[0]
         num_columns = A_c.shape[1]
 
-    P_t_avg = np.zeros((num_rows, num_columns), dtype=np.float64)
+    if dgidb_rows_only:
+        target_rows = load_dgidb_aggregate_row_indices(config)
+        if max(target_rows) >= num_rows:
+            raise ValueError(
+                f"DGIDB row index {max(target_rows)} is out of range for an "
+                f"aggregated matrix with {num_rows} rows; the indices and A_r "
+                "come from different runs."
+            )
+        filename = "P_t_avg_dgidb_rows"
+    else:
+        target_rows = range(num_rows)
+        filename = "P_t_avg"
 
-    for idx in tqdm(range(num_rows)):
+    P_t_avg = np.zeros((len(target_rows), num_columns), dtype=np.float64)
+
+    # MODIFIED: out_idx is the position in the output, idx the row being computed.
+    # They coincide only when every row is computed.
+    for out_idx, idx in enumerate(tqdm(target_rows)):
         if msigdb_only:
             idx_row = np.zeros(P.shape[0])
             idx_row[idx] = 1.0
@@ -763,9 +833,17 @@ def compute_and_save_average_transition_matrix(P, config, A_r=None, A_c=None):
                 avg_row += idx_row @ A_c
 
         avg_row /= len(config.average_t)
-        P_t_avg[idx] = avg_row
-    
-    np.save(config.output_directory, P_t_avg)
+        P_t_avg[out_idx] = avg_row
+
+    np.save(f"{config.output_directory}/{filename}.npy", P_t_avg)
+
+    # A row subset is meaningless without knowing which gene each row is, so persist
+    # the index list beside the matrix.
+    # if dgidb_rows_only:
+    #     with open(
+    #         f"{config.output_directory}/dgidb_agg_idx_list.json", "w"
+    #     ) as file:
+    #         json.dump(list(target_rows), file)
 
     return P_t_avg
 
