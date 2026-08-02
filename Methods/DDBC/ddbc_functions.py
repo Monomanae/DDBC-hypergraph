@@ -721,26 +721,26 @@ def apply_exact_power_left(x, t, A_r, P, A_c):
     return y
 
 
-def dgidb_aggregate_row_indices(coupling, gene_to_index_distinct):
+def dgidb_aggregate_row_indices(coupling, gene_to_index_distinct, matched_only=False):
     """
     Row indices of every DGIDB gene in the aggregated matrix.
+
+    MODIFIED: matched_only keeps just the DGIDB genes that also live in the MSIGDB
+    layer, dropping the DGIDB-only ones. The remaining indices stay in DGIDB index
+    order.
     """
 
     DGIDB_index_to_gene = coupling["DGIDB_index_to_gene"]
+    mapping = coupling["dgidb_to_msigdb_indices_dict"]
     n1 = coupling["num_genes_dgidb"]
-    return [gene_to_index_distinct[DGIDB_index_to_gene[idx]] for idx in range(n1)]
+    return [
+        gene_to_index_distinct[DGIDB_index_to_gene[idx]]
+        for idx in range(n1)
+        if not matched_only or mapping[idx] is not None
+    ]
 
 
-def load_dgidb_aggregate_row_indices(config):
-    """Same list as dgidb_aggregate_row_indices, rebuilt from the output folder.
-
-    Reads only dgidb_to_msigdb_indices_dict.json, which the coupling builders write
-    for the run that produced it, so the result always describes that run's
-    aggregation. Gene names are not needed: build_distinct_gene_mapping gives the
-    MSIGDB-less genes the leading rows in iteration order and shifts every shared
-    gene by that count, which is enough to replay the assignment.
-    """
-
+def load_dgidb_aggregate_row_indices(config, matched_only=False):
     with open(
         f"{config.output_directory}/dgidb_to_msigdb_indices_dict.json", "r"
     ) as file:
@@ -754,19 +754,20 @@ def load_dgidb_aggregate_row_indices(config):
     rank = 0
     for midx in dgidb_to_msigdb_indices_dict.values():
         if midx is None:
-            idx_list.append(rank)
+            if not matched_only:
+                idx_list.append(rank)
             rank += 1
         else:
             idx_list.append(midx + num_additional_rows)
     return idx_list
-
 
 def compute_and_save_average_transition_matrix(
     P,
     config,
     A_r=None,
     A_c=None,
-    dgidb_rows_only=False
+    dgidb_rows_only=False,
+    run_id = None
 ):
     if config.average_t is None:
         raise ValueError("average_t must be provided.")
@@ -777,9 +778,10 @@ def compute_and_save_average_transition_matrix(
     if (A_r is None) != (A_c is None):
         raise ValueError("A_r and A_c must either both be provided or both be None.")
 
-    # MODIFIED: dgidb_rows_only restricts the computation to the DGIDB rows. Each row
-    # is an independent e_idx A_r P^t A_c product, so skipping rows leaves the
-    # remaining ones bit-for-bit identical -- it only avoids the work.
+    # MODIFIED: dgidb_rows_only restricts the computation to the DGIDB genes that also
+    # appear in the MSIGDB layer; the DGIDB-only genes are left out. Each row is an
+    # independent e_idx A_r P^t A_c product, so skipping rows leaves the remaining ones
+    # bit-for-bit identical -- it only avoids the work.
     if dgidb_rows_only and msigdb_only:
         raise ValueError(
             "dgidb_rows_only requires the DGIDB+MSIGDB path; the MSIGDB-only "
@@ -794,17 +796,17 @@ def compute_and_save_average_transition_matrix(
         num_columns = A_c.shape[1]
 
     if dgidb_rows_only:
-        target_rows = load_dgidb_aggregate_row_indices(config)
+        target_rows = load_dgidb_aggregate_row_indices(config, matched_only=True)
         if max(target_rows) >= num_rows:
             raise ValueError(
                 f"DGIDB row index {max(target_rows)} is out of range for an "
                 f"aggregated matrix with {num_rows} rows; the indices and A_r "
                 "come from different runs."
             )
-        filename = "P_t_avg_dgidb_rows"
+        filename = "P_t_avg_dgidb_shared_rows" if run_id is None else f"P_t_avg_dgidb_shared_rows_{run_id}"
     else:
         target_rows = range(num_rows)
-        filename = "P_t_avg"
+        filename = "P_t_avg" if run_id is None else f"P_t_avg_{run_id}"
 
     P_t_avg = np.zeros((len(target_rows), num_columns), dtype=np.float64)
 
