@@ -289,6 +289,83 @@ def build_layer_adjacency_matrices(matrices):
     return DGIDB_adjacency_matrix, MSIGDB_adjacency_matrix
 
 
+def randomize_layer_adjacency_matrix(
+    A,
+    swaps_per_edge=10,
+    seed=None,
+    show_progress=True,
+):
+    """Degree-preserving randomization of a row-stochastic transition matrix.
+
+    Off-diagonal entries are rewired with double-edge swaps that exchange the
+    *column* labels of two entries: (i,j) and (k,l) become (i,l) and (k,j). Each
+    weight therefore never leaves its original row, so every row sum -- and hence
+    row-stochasticity -- is preserved exactly with no renormalization. Out-degree
+    (entries per row), in-degree (entries per column) and the diagonal
+    self-transition weights are all preserved too, while the pairing between
+    source and target genes is destroyed.
+    """
+
+    A = sp.csr_matrix(A)
+    n = A.shape[0]
+    diagonal = sp.diags(A.diagonal())
+
+    off_diagonal = (A - diagonal).tocoo()
+    off_diagonal.eliminate_zeros()
+    rows = off_diagonal.row.astype(np.int64)
+    cols = off_diagonal.col.astype(np.int64)
+    weights = off_diagonal.data
+    num_edges = rows.size
+
+    rng = np.random.default_rng(seed)
+    existing = set((rows * n + cols).tolist())
+
+    target_swaps = int(swaps_per_edge * num_edges)
+    max_attempts = 100 * target_swaps
+    accepted = 0
+    attempts = 0
+    progress = tqdm(
+        total=target_swaps, desc="edge swaps", disable=not show_progress
+    )
+
+    while accepted < target_swaps and attempts < max_attempts:
+        batch = min(8192, max_attempts - attempts)
+        e1s = rng.integers(0, num_edges, batch)
+        e2s = rng.integers(0, num_edges, batch)
+
+        for e1, e2 in zip(e1s, e2s):
+            attempts += 1
+            i, j = rows[e1], cols[e1]
+            k, l = rows[e2], cols[e2]
+            # Same row would be a no-op; equal targets forbid the swap outright.
+            if i == k or j == l:
+                continue
+            # Swapped targets must not land on the diagonal.
+            if i == l or k == j:
+                continue
+
+            new1 = i * n + l
+            new2 = k * n + j
+            if new1 in existing or new2 in existing:
+                continue
+
+            existing.discard(i * n + j)
+            existing.discard(k * n + l)
+            existing.add(new1)
+            existing.add(new2)
+            cols[e1], cols[e2] = l, j
+            accepted += 1
+            progress.update(1)
+            if accepted == target_swaps:
+                break
+
+    progress.close()
+    print(f"{accepted} swaps accepted out of {attempts} attempts")
+
+    rewired = sp.coo_matrix((weights, (rows, cols)), shape=A.shape)
+    return (rewired + diagonal).tocsr()
+
+
 def build_interlayer_coupling_matrices(
     DGIDB_adjacency_matrix,
     MSIGDB_adjacency_matrix,
@@ -372,12 +449,11 @@ def build_interlayer_coupling_matrices_randomized(
     DGIDB_adjacency_matrix,
     MSIGDB_adjacency_matrix,
     config,
-    none_prob = 0.015,
-    run_id = None,
+    none_prob = 0.015
 ):
     """Build C12, C21, A12, A21, B12, and B21 exactly as in the notebook."""
     
-    filename = "dgidb_to_msigdb_indices_dict" if run_id is None else f"dgidb_to_msigdb_indices_dict_{run_id}"
+    filename = "dgidb_to_msigdb_indices_dict"
 
     with open(config.dgidb_directory + "gene_to_index.json", "r") as file:
         dgidb = json.load(file)
@@ -461,95 +537,13 @@ def build_interlayer_coupling_matrices_randomized(
         "B12": B12,
         "B21": B21,
     }
+
+def build_distinct_gene_mapping(coupling, config):
+    filename = "gene_to_index_distinct"
     
-# def build_interlayer_coupling_matrices_randomized(
-#     DGIDB_adjacency_matrix,
-#     MSIGDB_adjacency_matrix,
-#     config,
-#     none_prob = 0.015,
-# ):
-#     """Build C12, C21, A12, A21, B12, and B21 exactly as in the notebook."""
-
-#     with open(config.dgidb_directory + "gene_to_index.json", "r") as file:
-#         dgidb = json.load(file)
-#     with open(config.msigdb_directory + "gene_to_index.json", "r") as file:
-#         msigdb = json.load(file)
-
-#     DGIDB_index_to_gene = {index: gene for gene, index in dgidb.items()}
-#     MSIGDB_index_to_gene = {index: gene for gene, index in msigdb.items()}
-#     num_genes_msigdb = len(msigdb)
-#     num_genes_dgidb = len(dgidb)
-
-#     dgidb_to_msigdb_indices_dict = {}
-#     C12 = np.zeros((num_genes_dgidb, num_genes_msigdb))
-#     C21 = np.zeros((num_genes_msigdb, num_genes_dgidb))
-#     B12_array = np.zeros(num_genes_dgidb)
-#     B21_array = np.zeros(num_genes_msigdb)
-
-#     matched = 0
-#     for gene_dgidb, idx_dgidb in dgidb.items():
-#         ### RANDOMIZED
-#         idx_msigdb = None if np.random.random() < none_prob else np.random.randint(0,num_genes_msigdb)
-#         #################
-#         if idx_msigdb is not None:
-#             dgidb_to_msigdb_indices_dict[idx_dgidb] = idx_msigdb
-#             matched += 1
-#         else:
-#             dgidb_to_msigdb_indices_dict[idx_dgidb] = None
-#             print(f"Gene {gene_dgidb} not wired to genes in MSIGDB.")
-
-#     for idx_dgidb, idx_msigdb in dgidb_to_msigdb_indices_dict.items():
-#         if idx_msigdb is not None:
-#             C12[idx_dgidb, :] = (
-#                 MSIGDB_adjacency_matrix.getrow(idx_msigdb).toarray().ravel()
-#             )
-#             C21[idx_msigdb, :] = (
-#                 DGIDB_adjacency_matrix.getrow(idx_dgidb).toarray().ravel()
-#             )
-#             B12_array[idx_dgidb] = config.interlayer_transition_prob
-#             B21_array[idx_msigdb] = config.interlayer_transition_prob
-
-#     A12_array = 1 - B12_array
-#     A21_array = 1 - B21_array
-#     B12 = sp.diags(B12_array)
-#     B21 = sp.diags(B21_array)
-#     A12 = sp.diags(A12_array)
-#     A21 = sp.diags(A21_array)
-
-#     print(matched / len(dgidb), "of DGIDB genes have a match in MSIGDB")
-
-#     with open(
-#         config.output_directory + "dgidb_to_msigdb_indices_dict.json", "w"
-#     ) as file:
-#         json.dump(dgidb_to_msigdb_indices_dict, file, indent=4)
-#     print(
-#         "Mappings saved to "
-#         + config.output_directory
-#         + "dgidb_to_msigdb_indices_dict.json"
-#     )
-
-#     return {
-#         "dgidb": dgidb,
-#         "msigdb": msigdb,
-#         "DGIDB_index_to_gene": DGIDB_index_to_gene,
-#         "MSIGDB_index_to_gene": MSIGDB_index_to_gene,
-#         "num_genes_dgidb": num_genes_dgidb,
-#         "num_genes_msigdb": num_genes_msigdb,
-#         "dgidb_to_msigdb_indices_dict": dgidb_to_msigdb_indices_dict,
-#         "C12": C12,
-#         "C21": C21,
-#         "A12": A12,
-#         "A21": A21,
-#         "B12": B12,
-#         "B21": B21,
-#     }
-
-
-def build_distinct_gene_mapping(coupling, config, run_id = None):
-    filename = "gene_to_index_distinct" if run_id is None else f"gene_to_index_distinct_{run_id}"
-    msigdb = coupling["msigdb"]
     dgidb_to_msigdb_indices_dict = coupling["dgidb_to_msigdb_indices_dict"]
     DGIDB_index_to_gene = coupling["DGIDB_index_to_gene"]
+    msigdb = coupling["msigdb"]
 
     gene_to_index_dgidb_new = {}
     num_additional_rows = 0
