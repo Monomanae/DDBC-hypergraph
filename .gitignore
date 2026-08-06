@@ -6,11 +6,11 @@ logs/
 *.tsv
 *.png
 *.code-workspace
-Methods/output/*
+Method/output/*
 Data/50_gene_distance_graph.edgelist
 Data/distance_matrix.npy
 Gen_Hypergraph/output/*
-Methods/output/
+Method/output/
 .vscode/
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -45,7 +45,7 @@ for replicate in range(1, num_replicates + 1):
         notebook,
         timeout=-1,
         kernel_name="python3",
-        # Relative paths in the notebook ("../output/NULL") resolve against this.
+        # Relative paths in the notebook ("output/NULL") resolve against this.
         resources={"metadata": {"path": str(NOTEBOOK.parent)}},
     )
 

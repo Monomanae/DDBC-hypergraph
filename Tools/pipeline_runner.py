@@ -17,13 +17,13 @@ start = time.time()
 DISEASE = input("Disease: ")
 
 notebooks = [
-    "Methods/DDBC/hypergraph_overview.ipynb",
+    "Method/hypergraph_overview.ipynb",
     "Gen_Hypergraph/DrugGeneHypergraph.ipynb",
-    "Methods/DDBC/Diffusion_Distance_Based_Clustering.ipynb",
-    "Methods/DDBC/Clustering_Result_Analysis.ipynb",
-    "Methods/DDBC/important_terms_analysis.ipynb",
-    "Methods/DDBC/disease_jaccard_similarity.ipynb",
-    "Methods/DDBC/community_pie_chart_multiple.ipynb"
+    "Method/Diffusion_Distance_Based_Clustering.ipynb",
+    "Method/Clustering_Result_Analysis.ipynb",
+    "Method/important_terms_analysis.ipynb",
+    "Method/disease_jaccard_similarity.ipynb",
+    "Method/community_pie_chart_multiple.ipynb"
 ]
 
 answers = iter([DISEASE] * len(notebooks))

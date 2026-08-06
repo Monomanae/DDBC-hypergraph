@@ -12,7 +12,7 @@ Requires `python3.10`
 
 - **`Gen_Hypergraph/`** – Includes scripts for generating the incidence matrices of hypergraphs used in the methods. Each notebook will generate a single layer. Each is weighted with the PPI network. Outputs will be under **`Gen_Hypergraph/outputs`**
 
-- **`Methods/`** – The /DDBC folder contains the Jupyter notebooks for the pipeline. The /DEI folder is an archived folder that contains the historical files for an old method.
+- **`Method/`** – Contains the Jupyter notebooks for the pipeline. Outputs will be under **`Method/output`**
 
 - **`Tools/`** – Contains helper files for running pipeline
 

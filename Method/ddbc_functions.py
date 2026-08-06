@@ -50,9 +50,9 @@ class DDBCConfig:
     stationary_maxit: int = 20000
     stationary_seed: int = 0
 
-    output_root: str = "../output"
-    dgidb_output_root: str = "../../Gen_Hypergraph/output"
-    graphs_root: str = "../../Graphs"
+    output_root: str = "output"
+    dgidb_output_root: str = "../Gen_Hypergraph/output"
+    graphs_root: str = "../Graphs"
 
     @property
     def output_directory(self):
